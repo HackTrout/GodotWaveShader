@@ -1,0 +1,184 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://Sprites/Water.png" type="Texture" id=1]
+[ext_resource path="res://Sprites/Lava.png" type="Texture" id=2]
+[ext_resource path="res://WaveShader/WaveShader.tres" type="Material" id=3]
+[ext_resource path="res://Sprites/CrossfireBGBlurred.png" type="Texture" id=4]
+[ext_resource path="res://9PathRect/9Patch0000.png" type="Texture" id=5]
+[ext_resource path="res://9PathRect/9PatchRect.gd" type="Script" id=6]
+[ext_resource path="res://Sprites/Title0000.png" type="Texture" id=7]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+
+uniform float wave_speed : hint_range(0.0, 1.0, 0.01) = 0.5; //How Much TIME is Multiplied By
+uniform float wave_amplitude : hint_range(0.0, 64.0, 0.1) = 2.4; //How Many Pixels High Should The Amplitude of the Wave Be
+uniform float wave_frequency : hint_range(0.0, 10.0, 0.01) = 1.0; //Adjust the Frequency of the Sin Curve
+uniform int wave_number = 2; //How Many Waves Should Be Created (Original Wave Included)
+uniform float wave_distance : hint_range(0.0, 12.0, 0.1) = 8.0; //How Far in Pixels the Wave Should Travel Up And Down
+uniform float wave_offset : hint_range(0.0, 256.0, 0.1) = 0.0; //How Far in Pixels Sub Waves Are Moved to the Right
+
+void fragment() {
+	vec2 displaced_uv = UV;
+	
+	//Vary the Y Position by a Sin Curve
+	displaced_uv.y += sin((UV.x * wave_frequency) + (TIME * wave_speed)) * (TEXTURE_PIXEL_SIZE.y * wave_amplitude); 
+	
+	//Move the Y Position Up and Down
+	displaced_uv.y += sin(TIME * wave_speed * 0.5) * (TEXTURE_PIXEL_SIZE.y * wave_distance); 
+	
+	//Get Color at Desplaced Position
+	vec4 color = texture(TEXTURE, displaced_uv);
+	
+	//Repeat Process for the Number of Sub Waves
+	for (int i; i < wave_number - 1; i ++) {
+		//Only Work With Pixels Which Are Transparent
+		if (color.a == 0.0) {
+			displaced_uv = UV;
+			
+			//Move the Sub Wave to the Right
+			displaced_uv.x += TEXTURE_PIXEL_SIZE.x * (wave_offset * float(i + 1));
+			
+			//Vary the Y Position by a Sin Curve
+			displaced_uv.y += sin((displaced_uv.x * wave_frequency) + (TIME * wave_speed)) * (TEXTURE_PIXEL_SIZE.y * wave_amplitude); 
+			
+			//Move the Y Position Up and Down
+			displaced_uv.y += sin((TIME * wave_speed * 0.5) + (1.0 + float(i))) * (TEXTURE_PIXEL_SIZE.y * (wave_distance + (wave_distance * float(i)))); 
+			
+			//Get Color at Desplaced Position
+			color = texture(TEXTURE, displaced_uv);
+		}
+	}
+	
+	//Assign Color
+	COLOR = vec4(color.rgb, color.a);
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+shader_param/wave_speed = 1.0
+shader_param/wave_amplitude = 3.9
+shader_param/wave_frequency = 1.92
+shader_param/wave_number = 3
+shader_param/wave_distance = 12.0
+shader_param/wave_offset = 73.6
+
+[node name="WaveShaderExample" type="Node2D"]
+
+[node name="CrossfireBGBlurred" type="Sprite" parent="."]
+texture = ExtResource( 4 )
+centered = false
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Lava" type="TextureRect" parent="."]
+material = ExtResource( 3 )
+margin_left = 224.0
+margin_top = 200.0
+margin_right = 544.0
+margin_bottom = 520.0
+texture = ExtResource( 2 )
+stretch_mode = 2
+__meta__ = {
+"_edit_group_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="9PatchRect" type="ReferenceRect" parent="Lava"]
+show_behind_parent = true
+margin_left = -5.0
+margin_top = -5.0
+margin_right = 325.0
+margin_bottom = 325.0
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+custom_texture = ExtResource( 5 )
+
+[node name="LavaSprite" type="TextureRect" parent="Lava"]
+margin_left = -96.0
+margin_right = -64.0
+margin_bottom = 320.0
+texture = ExtResource( 2 )
+stretch_mode = 2
+__meta__ = {
+"_edit_group_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="9PatchRect" type="ReferenceRect" parent="Lava/LavaSprite"]
+show_behind_parent = true
+margin_left = -5.0
+margin_top = -5.0
+margin_right = 37.0
+margin_bottom = 325.0
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+custom_texture = ExtResource( 5 )
+
+[node name="Water" type="TextureRect" parent="."]
+material = SubResource( 2 )
+margin_left = 832.0
+margin_top = 200.0
+margin_right = 1152.0
+margin_bottom = 520.0
+texture = ExtResource( 1 )
+stretch_mode = 2
+__meta__ = {
+"_edit_group_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="9PatchRect" type="ReferenceRect" parent="Water"]
+show_behind_parent = true
+margin_left = -5.0
+margin_top = -5.0
+margin_right = 325.0
+margin_bottom = 325.0
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+custom_texture = ExtResource( 5 )
+
+[node name="WaterSprite" type="TextureRect" parent="Water"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -256.0
+margin_top = -160.0
+margin_right = -224.0
+margin_bottom = 160.0
+texture = ExtResource( 1 )
+stretch_mode = 2
+__meta__ = {
+"_edit_group_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="9PatchRect" type="ReferenceRect" parent="Water/WaterSprite"]
+show_behind_parent = true
+margin_left = -5.0
+margin_top = -5.0
+margin_right = 37.0
+margin_bottom = 325.0
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+custom_texture = ExtResource( 5 )
+
+[node name="Title" type="Sprite" parent="."]
+position = Vector2( 0, 540 )
+texture = ExtResource( 7 )
+centered = false
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
+current = true

@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=2]
+
+[ext_resource path="res://WaveShader/WaveShader.shader" type="Shader" id=1]
+
+
+[resource]
+shader = ExtResource( 1 )
+shader_param/wave_speed = 0.5
+shader_param/wave_amplitude = 2.4
+shader_param/wave_frequency = 1.0
+shader_param/wave_number = 2
+shader_param/wave_distance = 8.0
+shader_param/wave_offset = 0.0
